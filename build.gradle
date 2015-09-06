@@ -1,0 +1,39 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.1stleg:jnativehook:2.0.2")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'java-base'
+apply plugin: 'application'
+
+mainClassName = "main.Main"
+sourceSets.main.java.srcDirs = ['src']
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+version = '1.0'
+
+jar {
+    baseName = 'GameSolver'
+    version =  '1.0'
+    
+    from('src') {
+    	include '**/*.xml'
+  	}
+}
+
+repositories {
+    mavenCentral()
+}
+    
+dependencies {
+    compile "com.1stleg:jnativehook:2.0.2"
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.6'
+}

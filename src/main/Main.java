@@ -1,3 +1,4 @@
+package main;
 import javax.swing.SwingUtilities;
 
 import service.MainService;
@@ -21,7 +22,7 @@ public class Main {
 		_mainService.init();
 		
 		MainFrame main = new MainFrame();
-		main.init(_mainService.getSolverService());
+		main.init(_mainService);
 	}
 
 }

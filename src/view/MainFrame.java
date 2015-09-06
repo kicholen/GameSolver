@@ -4,27 +4,33 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractButton;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-import service.solver.ISolverService;
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.NativeHookException;
+import org.jnativehook.keyboard.NativeKeyEvent;
+import org.jnativehook.keyboard.NativeKeyListener;
 
-public class MainFrame extends JFrame implements ActionListener, KeyListener {
+import service.MainService;
+
+public class MainFrame extends JFrame implements ActionListener, NativeKeyListener {
     /**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	ISolverService _service;
+	MainService _service;
 	Dimension _dim;
 	JButton _button;
 	boolean _working;
 	
-	public void init(ISolverService service) {
+	public void init(MainService service) {
 		_service = service;
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         _dim = _dim == null ? new Dimension(200, 80) : _dim;
@@ -39,10 +45,28 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
         add(_button);
         setFocusable(true);
         setVisible(true);
-        addKeyListener(this);
+        
+        addGlobalListener();
+        WindowAdapterEx adapter = new WindowAdapterEx();
+        adapter.setData(this);
+        addWindowListener(adapter);
+        
+        LogManager.getLogManager().reset();
+        Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
+        logger.setLevel(Level.OFF);
 	}
     
-    @Override
+    private void addGlobalListener() {
+    	try {
+            GlobalScreen.registerNativeHook();
+        }
+        catch (NativeHookException ex) {
+        	ex.printStackTrace();
+        }
+    	GlobalScreen.addNativeKeyListener(this);
+	}
+
+	@Override
     public void setSize(Dimension dim) {
     	_dim = dim;
     	super.setSize(dim);
@@ -52,12 +76,12 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 	public void actionPerformed(ActionEvent e) {
 		if (_working) {
 			_button.setText("start");
-			_service.stop();
+			_service.getSolverService().stop();
 			_working = false;
 		}
 		else {
 			_button.setText("stop");
-			_service.start();
+			_service.getSolverService().start();
 			_working = true;
 		}
 	}
@@ -65,22 +89,32 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 	public boolean isWorking() {
 		return _working;
 	}
-
-	@Override
-	public void keyPressed(KeyEvent arg0) {
-		if(arg0.getKeyCode() == KeyEvent.VK_ESCAPE) {
-			_service.destroy();
-			System.exit(ABORT);
-		}
+	
+	public void destroy() {
+		_service.destroy();
 	}
-
+	
 	@Override
-	public void keyReleased(KeyEvent arg0) {
+	public void nativeKeyPressed(NativeKeyEvent e) {
+		if (e.getKeyCode() == NativeKeyEvent.VC_ESCAPE) {
+            try {
+				GlobalScreen.unregisterNativeHook();
+			} catch (NativeHookException e1) {
+				e1.printStackTrace();
+			}
+            _service.destroy();
+			System.exit(ABORT);
+        }
 		
 	}
 
 	@Override
-	public void keyTyped(KeyEvent arg0) {
+	public void nativeKeyReleased(NativeKeyEvent arg0) {
+		
+	}
+
+	@Override
+	public void nativeKeyTyped(NativeKeyEvent arg0) {
 		
 	}
 }

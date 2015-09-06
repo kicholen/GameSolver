@@ -101,7 +101,7 @@ public class SolverService implements ISolverService, ITickable {
 		boolean found = false;
 		
 		for (int i = 0; i < _blocks.length && !found; i++) {
-			for (int j = 0; j < _blocks[i].length && !found; j++) {
+			for (int j = 0; j < _blocks[i	].length && !found; j++) {
 				_currentPoint.setLocation(i, j);
 				_previousPoint.setLocation(i, j);
 				if (isSpecial(_blocks[i][j])) {
